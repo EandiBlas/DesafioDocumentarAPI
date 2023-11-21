@@ -1,45 +1,49 @@
 paths:
   /api/products:
     post:
-      summary: Método para crear un producto
-      consumes:
-       - application/json
-      parameters:
-        - in: body
-          name: product
-          description: Datos del producto a crear
-          schema:
-            type: object
-            properties:
-              title:
-                type: string
-              description:
-                type: string
-              price:
-                type: number
-              stock:
-                type: number
-              thumbnail:
-                type: string
-              code:
-                type: string
-              category:
-                type: string
+      summary: Método para crear productos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: number
+                thumbnail:
+                  type: string
+                code:
+                  type: string
+                category:
+                  type: string
       responses:
-        '201':
-          description: Producto creado con éxito
+        200:
+          description: Respuesta exitosa
           content:
             application/json:
-              example: { "message": "Producto creado con éxito" }
-        '400':
-          description: Campos requeridos faltantes
+              examples:
+                success:
+                  value:
+                    message: "Producto creado"
+        400:
+          description: Error
           content:
             application/json:
-              example: { "error": "Campos requeridos faltantes", "details": ["title (de tipo String) es requerido"] }
-        '403':
-          description: Acceso no autorizado
-        '500':
-          description: Error al crear el producto
+              examples:
+                missing_data:
+                  value:
+                    error: "Faltan datos al crear el producto"
+                duplicate_code:
+                  value:
+                    error: "El código del producto ya existe"
+
 
     get:
       summary: Método para obtener la lista de productos
@@ -65,10 +69,23 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-          description: Success lista de productos obtenida
-        '404':
-          description: Se ha producido un error al traer los productos
+        200:
+          description: Respuesta exitosa
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    message: "Lista de productos obtenida"
+        400:
+          description: Error
+          content:
+            application/json:
+              examples:
+                error:
+                  value:
+                    error: "Se ha producido un error al traer los productos"
+
 
   /api/products/{pid}:
     get:
@@ -81,13 +98,24 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-          description: Ejemplo del producto obtenido de forma exitosa
+        200:
+          description: Respuesta exitosa
           content:
             application/json:
-              example: { "_id":"654bfd8a785659d9c9309b74", "title":"Pingu feliz", "description":"s3s", "price":33222, "stock":32, "thumbnails":"", "category":"Toys", "owner":"richard@richard.com" }
-        '404':
-          description: Producto no encontrado
+              examples:
+                success:
+                  value:
+                    message: "Producto obtenido con exito"
+        404:
+          description: Error
+          content:
+            application/json:
+              examples:
+                error:
+                  value:
+                    error: "Producto no encontrado"
+
+
 
     put:
       summary: Método para modificar un respectivo producto por su ID
@@ -103,19 +131,42 @@ paths:
           application/json:
             schema:
               type: object
-              example: { "title": "Nuevo título" }
+              example: { "title": "New title" }
       responses:
-        '200':
-          description: Producto actualizado
+        200:
+          description: Respuesta exitosa
           content:
             application/json:
-              example: Producto actualizado
-        '404':
-          description: Producto no encontrado
-        '403':
-          description: Acceso no autorizado
-        '500':
-          description: Error al actualizar el producto
+              examples:
+                success:
+                  value:
+                    message: "Producto actualizado"
+        403:
+          description: Error
+          content:
+            application/json:
+              examples:
+                Middlewares_Error:
+                  value:
+                    error: "Acceso no autorizado"
+        404:
+          description: Error
+          content:
+            application/json:
+              examples:
+                error:
+                  value:
+                    error: "Producto no encontrado"
+        500:
+          description: Error
+          content:
+            application/json:
+              examples:
+                error:
+                  value:
+                    error: "Error al actualizar el producto"
+
+
 
     delete:
       summary: Método para eliminar un respectivo producto por su ID
@@ -127,14 +178,35 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-          description: Producto eliminado
+        200:
+          description: Respuesta exitosa
           content:
             application/json:
-              example: "Producto eliminado"
-        '404':
-          description: Producto no encontrado
-        '403':
-          description: No tienes permiso para realizar esta acción
-        '500':
-          description: Error en la verificación de permisos
+              examples:
+                success:
+                  value:
+                    message: "Producto eliminado"
+        403:
+          description: Error
+          content:
+            application/json:
+              examples:
+                Middlewares_Error:
+                  value:
+                    error: "No tienes permiso para realizar esta acción"
+        404:
+          description: Error
+          content:
+            application/json:
+              examples:
+                error:
+                  value:
+                    error: "Producto no encontrado"
+        500:
+          description: Error
+          content:
+            application/json:
+              examples:
+                error:
+                  value:
+                    error: "Error al eliminar el producto"

@@ -11,7 +11,7 @@ class ProductController {
 
 
     addProduct = async (req, res) => {
-        console.log(req.body,'product controller')
+
         try {
 
             if (!req.session.username) {
@@ -27,7 +27,7 @@ class ProductController {
             if (!userEmail) {
                 return res.status(404).json({ error: "Usuario no encontrado en la base de datos" });
             }
-            
+
             req.body.owner = userEmail;
 
             const result = await this.service.addProduct(req.body);
@@ -36,26 +36,25 @@ class ProductController {
                 return res.status(400).json({ error: result.error });
             }
 
-            res.status(201).json(result);
+            res.status(201).json({ message: "Producto creado", result });
+
         } catch (error) {
             return res.status(500).json({ error: "Error interno del servidor" });
         }
     };
 
 
-
-
-
     getProduct = async (req, res) => {
         try {
             const product = await this.service.getProduct(req.params.pid);
-            res.status(200).json(product);
+            res.status(200).json({ message: "Producto obtenido con exito", product });
         } catch (error) {
             const customError = CustomError.createError(errorMessages.PRODUCT_NOT_FOUND);
             logger.error('Error el producto buscado no existe //loggerTest//');
             return res.status(404).json({ error: customError.message });
         }
     }
+
 
     getAllProducts = async (req, res) => {
         try {
@@ -65,7 +64,7 @@ class ProductController {
             };
 
             const products = await this.service.getProducts(params);
-            
+
             let prevLink;
             let nextLink;
 
@@ -82,7 +81,7 @@ class ProductController {
 
             const { totalPages, prevPage, nextPage, hasNextPage, hasPrevPage, docs } = products
 
-            return res.status(200).send({ status: 'Success lista de productos obtenida', payload: docs, totalPages, prevPage, nextPage, hasNextPage, hasPrevPage, prevLink, nextLink });
+            return res.status(200).send({ status: 'Lista de productos obtenida', payload: docs, totalPages, prevPage, nextPage, hasNextPage, hasPrevPage, prevLink, nextLink });
         } catch (error) {
             const customError = CustomError.createError(errorMessages.GET_PRODUCTS_ERROR);
             logger.error('Error al traer todos los productos //loggerTest//');
@@ -93,16 +92,23 @@ class ProductController {
 
     updateProduct = async (req, res) => {
         try {
+
             const updateProduct = await this.service.updateProduct(req.params.pid, req.body);
-            res.status(200).json(updateProduct);
+
+            if (!updateProduct) {
+                return res.status(404).json({ error: "Producto no encontrado" });
+            }
+
+            res.status(200).json({ message: "Producto actualizado", updatedProduct: updateProduct });
         } catch (error) {
-            res.status(500).json(error);
+            res.status(500).json({ error: "Error al actualizar el producto" });
         }
     };
 
 
     deleteProduct = async (req, res) => {
         try {
+
             const product = await this.service.getProduct(req.params.pid);
 
             if (!product) {
@@ -110,9 +116,10 @@ class ProductController {
             }
 
             const deleteProduct = await this.service.deleteProduct(req.params.pid);
-            return res.status(200).json(deleteProduct);
+            return res.status(200).json({ message: "Producto Eliminado", deleteProduct })
+            
         } catch (error) {
-            res.status(500).json(error);
+            res.status(500).json({ error: "Error al eliminar el producto" });
         }
     }
 

@@ -15,8 +15,12 @@ class CartManager {
 
     
     getCartById = async (cartId) => {
-
         try {
+            
+            if (!cartId) {
+                throw new Error('El ID del carrito es undefined o no está definido correctamente.');
+            }
+
             const cart = await cartModel.findById(cartId).populate('products.product');
             return cart;
         } catch (err) {
@@ -28,10 +32,10 @@ class CartManager {
     addCart = async (cartData) => {
         try {
             const cart = await cartModel.create(cartData);
-            return cart; // Devuelve el carrito creado en caso de éxito
+            return cart;
         } catch (err) {
             console.error('Error al crear el carrito:', err.message);
-            throw err; // Propaga el error para que sea manejado externamente
+            throw err; 
         }
     };
 

@@ -33,7 +33,7 @@ const um = new UsersManager();
 
         const user = await um.findUser(req.session.username);
     
-        if (user.role !== 'admin' && user.role !== 'premium') return res.status(403).send('Forbidden');
+        if (user.role !== 'admin' && user.role !== 'premium') return res.status(403).send('Acceso no autorizado');
     
         next();
     };

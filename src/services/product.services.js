@@ -11,17 +11,16 @@ class ProductService {
 
     addProduct = async (product) => {
         try {
-            console.log(product,'de product services')
-            if (!product.title || !product.description || !product.price || !product.thumbnail || !product.category || !product.stock || !product.code || !product.owner) {
+
+            if (!product.title || !product.description || !product.price || !product.thumbnail || !product.category || !product.stock || !product.code) {
                 const customError = CustomError.createError(errorMessages.MISSING_DATA);
                 return { error: customError.message };
             }
 
             const verifyCode = await this.product.getProductByCode(product.code);
             if (verifyCode) {
-                return { error: "El código se repite" };
+                return { error: "El código del producto ya existe" };
             }
-
 
             if (product.owner !== 'admin') {
                 const user = await usersModel.findOne({ email: product.owner });
@@ -69,18 +68,13 @@ class ProductService {
         return await this.product.getProducts({}, options);
     };
 
-    updateProduct = async (id, product) => {
-        const updateProduct = await this.product.updateProduct(id, product);
-        return 'Producto Actualizado';
+    updateProduct = async (pid, product) => {
+        const updateProduct = await this.product.updateProduct(pid, product);
+        return updateProduct;
     };
 
     deleteProduct = async (pid) => {
         const deleteProduct = await this.product.deleteProduct(pid);
-        if (deleteProduct) {
-            return 'Producto Eliminado';
-        } else {
-            return 'Producto no encontrado';
-        }
     };
 
 }

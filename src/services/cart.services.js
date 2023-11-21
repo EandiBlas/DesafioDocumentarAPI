@@ -50,7 +50,9 @@ class CartService {
     }
     cartData.purchaser = vemail;
     cartData.products = validProducts;
-    return await this.cart.addCart(cartData)
+    let carrito = await this.cart.addCart(cartData)
+    console.log(carrito)
+    return carrito
   };
 
   getCart = async (id) => {
@@ -87,7 +89,6 @@ class CartService {
 
 
   updateProductList = async (cid, pid, quantity) => {
-    console.log(pid)
     try {
       const cart = await this.cart.getCartById(cid);
 
@@ -103,7 +104,7 @@ class CartService {
         cart.products.push({ _id: pid, quantity });
       }
 
-      return await cart.save();
+      return await cart
     } catch (error) {
       throw error;
     }
@@ -117,7 +118,7 @@ class CartService {
       if (productIndex === -1) {
         throw new Error(`Product with ID: ${pid} not found in cart`);
       }
-      //eliminar un producto y cuando llegue a 1 borrarlo totalmente
+
       cart.products.splice(productIndex, 1);
       await this.cart.updateCart(cid, cart.products);
       return await this.cart.getCartById(cid);
@@ -147,9 +148,9 @@ class CartService {
   }
 
 
-  // Método para finalizar la compra de un carrito
+
   finalizeCartPurchase = async (cid) => {
-    console.log(cid)
+
     try {
       const cart = await this.cart.getCartById(cid);
       const user = await this.user.findUserEmail(cart.purchaser);
@@ -166,7 +167,7 @@ class CartService {
       const productsToBuy = []
 
       for (const product of cart.products) {
-        console.log(product)
+
         const productData = await this.product.getProductById(product.product._id);
 
         let quantityProduct = true;
@@ -202,7 +203,7 @@ class CartService {
         return totalAmount;
       }
       const result = calculateTotalAmount(productsToBuy);
-      console.log(result)
+
       const ticket = new ticketModel({
         purchase_datetime: new Date(),
         amount: result,
@@ -215,7 +216,7 @@ class CartService {
 
       await this.cart.updateCart(cid, cart.products);
 
-      return { message: 'Compra exitosa', ticket: ticket };
+      return { ticket: ticket };
     } catch (error) {
       throw error;
     }

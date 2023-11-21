@@ -25,29 +25,31 @@ class CartsController {
 
       const product = await this.productService.getProduct(pid);
 
-      if (!product) {
-        throw new Error(`Product with ID: ${pid} not found`);
-      }
-
+      
       if (currentUser.role === 'premium' && currentUser.email === product.owner) {
 
         return res.status(403).json({
           status: 'error',
           message: 'Premium users cannot add their own products to the cart.',
         });
-
+        
       }
-
+      if (!product) {
+        return res.status(404).json((`Product with ID: ${pid} not found`))
+      }
+      
       const updatedCart = await this.service.addProductToCart(cid, pid, quantity);
       res.status(200).send({
         status: 'success',
         message: `The product with ID: ${pid} was added correctly`,
         cart: updatedCart,
       });
+      
+
     } catch (error) {
-      const customError = CustomError.createError(errorMessages.ADD_PRODUCT_ERROR);
+      const customError = CustomError.createError(errorMessages.CART_NOT_FOUND);
       logger.error('Error al ingresar un producto al carrito //loggerTest//');
-      return res.status(404).json({ error: customError.message });
+      return res.status(500).json({ error: customError.message });
     }
   }
 
@@ -56,24 +58,25 @@ class CartsController {
     try {
       const fuser = await this.userService.findUser(req.session.username)
       const { products } = req.body;
+      console.log(products)
       if (!Array.isArray(products)) {
         return res.status(400).send('Invalid request: products must be an array');
       }
       const cart = await this.service.createCart(products, fuser.email);
-      res.status(200).json(cart);
+      res.status(200).json({ message: "Carrito creado", cart })
     } catch (error) {
-      res.status(500).json(error.message);
+      res.status(500).json({ error: "Necesitas loguearte para crear el carrito" });
     }
   };
 
   getCartById = async (req, res) => {
     try {
       const cart = await this.service.getCart(req.params.cid);
-      res.status(200).json(cart);
+      res.status(200).json({ message: "Carrito obtenido con exito", cart })
     } catch (error) {
       const customError = CustomError.createError(errorMessages.CART_NOT_FOUND);
       logger.error('Ocurrio un error al traer el carrito //loggerTest//');
-      return res.status(404).json({ error: customError.message });
+      return res.status(500).json({ error: customError.message });
     }
   }
 
@@ -91,18 +94,23 @@ class CartsController {
     const { quantity } = req.body;
 
     try {
+
       const result = await this.service.updateProductQuantityInCart(cid, pid, quantity);
-      res.json(result);
+      return res.status(200).json({ message: "La cantidad del producto fue actualizada", result });
+      
+
     } catch (error) {
-      res.status(500).json({ error: error.toString() });
+      const customError = CustomError.createError(errorMessages.UPDATE_PRODUCT_QUANTITY);
+      logger.error('Error al actualizar la cantidad del producto //loggerTest//');
+      return res.status(404).json({ error: customError.message });
     }
   };
 
   updateProductList = async (req, res) => {
     const { cid } = req.params;
-    const { _id, quantity } = req.body;
+    const { pid, quantity } = req.body;
     try {
-      const updatedCart = await this.service.updateProductList(cid, _id, quantity);
+      const updatedCart = await this.service.updateProductList(cid, pid, quantity);
       res.json(updatedCart);
     } catch (error) {
       res.status(500).send(error.message);
@@ -152,13 +160,20 @@ class CartsController {
 
   finalizeCartPurchase = async (req, res) => {
     const { cid } = req.params;
-
+  
     try {
       const result = await this.service.finalizeCartPurchase(cid);
-      res.status(200).json(result);
+      res.status(201).json({ message: 'Compra finalizada con éxito', result });
+  
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Error al finalizar la compra' });
+      if (error.message.includes('Usuario asociado al carrito no encontrado')) {
+        res.status(404).json({ status: 'error', message: 'Usuario asociado al carrito no encontrado' });
+      } else if (error.message.includes('Carrito no encontrado')) {
+        res.status(404).json({ status: 'error', message: `Carrito con ID: ${cid} no encontrado` });
+      } else {
+        res.status(500).json({ message: 'Error al finalizar la compra' });
+      }
     }
   };
 
